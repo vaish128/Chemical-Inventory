@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chemical Inventory System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .nav-sidebar { background: #2d4373; color: white; min-height: 100vh; }
+        .header { background-color: #2d4373; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-link-custom {color: inherit; text-decoration: none; cursor: default;display: inline-block;}
+        .nav-link-custom:hover {color: #ffca28;text-decoration: none; cursor: pointer;}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h5 class="m-0">Inventory Management - Chemical Products</h5>
+        <div><small>Welcome, Admin</small> 
+            <a href="/logout" class="btn btn-sm btn-outline-light ms-2">Logout</a>
+        </div>
+        
+    </div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2 nav-sidebar p-3">
+            <h4>Admin Panel</h4>
+            <hr>
+            <p><a href="/" class="nav-link-custom">🏠 Home</a></p>
+            <p>📦 Inventory List</p>
+            <a href="#" class="nav-link-custom" data-bs-toggle="modal" data-bs-target="#addModal">➕ Add Product</a>
+            </div>
+            
+            <div class="col-md-10 p-4">
+                {% with messages = get_flashed_messages() %}
+                  {% if messages %}
+                    {% for message in messages %}
+                      <div class="alert alert-warning alert-dismissible fade show">{{ message }}</div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+
+                <div class="d-flex justify-content-between mb-4">
+                    <h2>Chemical Inventory</h2>
+                    <form action="/" method="GET" class="d-flex gap-2">
+                        <input type="text" name="search" class="form-control" placeholder="Search Name or CAS..." value="{{ search_val }}">
+                        <button class="btn btn-outline-secondary">Search</button>
+                    </form>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">+ Add Product</button>
+                </div>
+
+                <table class="table table-hover shadow-sm bg-white">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Product Name</th><th>CAS Number</th><th>Unit</th><th>Initial Stock</th><th>Update</th><th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventory %}
+                        <tr>
+                            <td>{{ item[1] }}</td>
+                            <td><small class="text-muted">{{ item[2] }}</small></td>
+                            <td>{{ item[3] }}</td>
+                            <td>
+                                {% if item[4] < 10 %}
+                                    <span class="badge bg-danger">Low Stock: {{ item[4] }} </span>
+                                {% else %}
+                                    <span class="badge bg-success">{{ item[4] }} </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form action="/update_stock/{{ item[0] }}" method="POST" class="d-flex gap-1">
+                                    <input type="number" name="amount" class="form-control form-control-sm" style="width: 60px;" value="1" min="1">
+                                    <button name="action" value="IN" class="btn btn-sm btn-success">IN</button>
+                                    <button name="action" value="OUT" class="btn btn-sm btn-warning">OUT</button>
+                                </form>
+                            </td>
+                            <td><a href="/delete/{{ item[0] }}" class="btn btn-sm text-danger" onclick="return confirm('Delete this product?')">Delete</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form action="/add" method="POST" class="modal-content">
+                <div class="modal-header"><h5>Add Chemical Product</h5></div>
+                <div class="modal-body">
+                    <div class="mb-3"><label>Product Name</label><input type="text" name="name" class="form-control" required></div>
+                    <div class="mb-3"><label>CAS Number (Unique)</label><input type="text" name="cas" class="form-control" placeholder="e.g. 64-17-5" required></div>
+                    <div class="mb-3">
+                        <label>Unit of Measurement</label>
+                        <select name="unit" class="form-select">
+                            <option value="KG">KG</option>
+                            <option value="ML">ML</option>
+                            <option value="Litre">Litre</option>
+                            <option value="MT">MT</option>
+                        </select>
+                    </div>
+                    <div class="mb-3"><label>Initial Stock</label><input type="number" name="stock" class="form-control" min="1" value="1" required></div>
+                </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-primary">Save Product</button></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
